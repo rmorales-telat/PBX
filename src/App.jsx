@@ -7,7 +7,10 @@ const initialSteps = [
     title: 'Entrada de la llamada',
     summary: 'Llamada entrante desde PSTN/Troncal hacia la PBX. Se registra caller ID y número destino.',
     details: `La llamada llega a la puerta de entrada del PBX. Se generan eventos: Newchannel, Newstate. Se asigna un uniqueid (call_id).`,
-    tip: 'Menciona el origen (trunk) y el uniqueid como identificador único de la llamada.'
+    tip: 'Menciona el origen (trunk) y el uniqueid como identificador único de la llamada.',
+    presenterNotes: `Aquí es donde todo empieza: la troncal entrega la llamada a nuestro PBX, que crea un uniqueid — piensen en él como el número de expediente de esta llamada. Con ese id podremos seguir todo lo que ocurra después.`,
+    timeEstimate: '1-2 minutos',
+    example: 'Caller: +34123456789 → Destino: 1002 · Evento: Newchannel · Uniqueid: 1623-abc-0001'
   },
   {
     id: 'ringing',
@@ -19,16 +22,14 @@ const initialSteps = [
   {
     id: 'ivr',
     title: 'IVR / Árbol de opciones',
-    summary: 'Si la ruta es un IVR, el usuario escucha un menú y elige opciones que definen el siguiente salto en el árbol.'
-    ,
+    summary: 'Si la ruta es un IVR, el usuario escucha un menú y elige opciones que definen el siguiente salto en el árbol.',
     details: `Muestra el árbol de opciones: por ejemplo 1 = Ventas, 2 = Soporte, 3 = Facturación. Cada opción puede invocar una subrutina o una cola.`,
     tip: 'Resalta manejo de tiempos de espera, intentos inválidos y opciones por defecto (timeout/invalid).'  
   },
   {
     id: 'queue',
     title: 'Cola (Queue) y distribución a agentes',
-    summary: 'La llamada entra en una cola; se asigna posición, tiempos de espera y se pone a disposición de agentes.'
-    ,
+    summary: 'La llamada entra en una cola; se asigna posición, tiempos de espera y se pone a disposición de agentes.',
     details: `Se registran eventos de cola: QueueEntry, QueueMemberAdded, AgentConnect. Strategy: round-robin, least-recent, ringall, etc.`,
     tip: 'Explica monitoreo de métricas: tiempo medio, abandon rate y overflow.'
   },
@@ -42,8 +43,7 @@ const initialSteps = [
   {
     id: 'hangup',
     title: 'Finalización y CDR',
-    summary: 'La llamada termina (answered/busy/no-answer). Se genera el CDR con disposition, duración y grabaciones.'
-    ,
+    summary: 'La llamada termina (answered/busy/no-answer). Se genera el CDR con disposition, duración y grabaciones.',
     details: `Eventos: Hangup. El CDR contiene start_time, answer_time, end_time, disposition, recording_url. Es la base para reportes y auditoría.`,
     tip: 'Explica cómo usar el CDR para KPI y debugging.'
   }
@@ -97,6 +97,25 @@ export default function App () {
                 <p>{current.details}</p>
                 <h4>Consejo</h4>
                 <p className="muted">{current.tip}</p>
+
+                {current.example && (
+                  <>
+                    <h4>Ejemplo</h4>
+                    <p>{current.example}</p>
+                  </>
+                )}
+
+                {current.presenterNotes && (
+                  <>
+                    <h4>Notas del presentador</h4>
+                    <p className="muted">{current.presenterNotes}</p>
+                  </>
+                )}
+
+                {current.timeEstimate && (
+                  <div style={{marginTop:12}}><strong>Tiempo recomendado:</strong> {current.timeEstimate}</div>
+                )}
+
               </div>
             </motion.div>
           </AnimatePresence>
