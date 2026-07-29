@@ -1,0 +1,57 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <title>PBX Dashboard - Llamadas</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 16px; }
+    .call { padding:8px; border:1px solid #ddd; margin-bottom:8px; border-radius:4px; }
+    .meta { color:#666; font-size:0.9em; }
+  </style>
+</head>
+<body>
+  <h1>PBX Dashboard - Llamadas activas / recientes</h1>
+  <div id="calls"></div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+    const calls = {};
+    const callsEl = document.getElementById('calls');
+
+    function renderCall(call) {
+      let el = document.getElementById('call-' + call.id);
+      if (!el) {
+        el = document.createElement('div');
+        el.className = 'call';
+        el.id = 'call-' + call.id;
+        callsEl.prepend(el);
+      }
+      const last = call.events[call.events.length - 1];
+      el.innerHTML = `<strong>${last.from || '??'}</strong> → <strong>${last.to || '??'}</strong>
+        <div class="meta">ID: ${call.id} · Estado: ${call.last_state} · Eventos: ${call.events.length}</div>
+        <details><summary>Timeline</summary>
+          <ul>${call.events.map(e => `<li>[${new Date(e.timestamp).toLocaleTimeString()}] ${e.event} ${e.channel ? '· ' + e.channel : ''}</li>`).join('')}</ul>
+        </details>`;
+    }
+
+    socket.on('initial-state', (list) => {
+      list.reverse().forEach(c => { calls[c.id] = c; renderCall(c); });
+    });
+
+    socket.on('call:event', (ev) => {
+      const id = ev.call_id;
+      if (!calls[id]) calls[id] = { id, events: [], last_state: null, created_at: ev.timestamp };
+      calls[id].events.push(ev);
+      calls[id].last_state = ev.event;
+      renderCall(calls[id]);
+      // Si es Hangup, puedes moverlo a histórico o marcarlo visualmente
+      if (ev.event && ev.event.toLowerCase().includes('hangup')) {
+        // ejemplo: marcar en gris
+        const el = document.getElementById('call-' + id);
+        if (el) el.style.opacity = 0.6;
+      }
+    });
+  </script>
+</body>
+</html>
